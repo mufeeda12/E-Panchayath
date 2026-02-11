@@ -1,0 +1,15 @@
+[project]
+name = "backend"
+version = "0.1.0"
+description = "E-Panchayath Backend"
+readme = "README.md"
+requires-python = ">=3.10"
+
+dependencies = [
+    "fastapi>=0.128.8",
+    "passlib[bcrypt]>=1.7.4",
+    "python-jose>=3.5.0",
+    "python-multipart>=0.0.22",
+    "sqlalchemy>=2.0.46",
+    "uvicorn>=0.40.0",
+]
