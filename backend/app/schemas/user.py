@@ -4,12 +4,11 @@ from typing import Literal
 
 
 class userCreate(BaseModel):
-    firstname:str
-    lastname:str
+    fullname:str
     phone_number: str
     email: EmailStr
     district: str
-    pin_code: str
+    pincode: str
     local_body_type: Literal["Panchayat", "Municipality"]
     local_body_name: str
     ward_number: int
@@ -21,14 +20,9 @@ class userLogin(BaseModel):
 
 class userResponse(BaseModel):
     id: int
-    firstname: str
-    lastname: str
+    fullname: str
     email: EmailStr
-    district: str
-    pin_code: str
-    local_body_type: str
-    local_body_name: str
-    ward_number: int
+    role: str
 
     class Config:
         from_attributes = True
@@ -36,3 +30,6 @@ class userResponse(BaseModel):
 class loginResponse(BaseModel):
     message: str
     user:userResponse
+    access_token: str
+    token_type: str
+

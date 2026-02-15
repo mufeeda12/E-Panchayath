@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI,Depends
 from app.db.database import engine
 from app.models import user
 from app.routers import user as user_router
