@@ -1,7 +1,7 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import declarative_base,sessionmaker
 
-DATABASE_URL = "mysql+pymysql://root:@localhost:3306/epanchayat"
+DATABASE_URL = "postgresql://postgres:87654321@localhost:5432/epanchayat"
 
 engine = create_engine(DATABASE_URL)
 
