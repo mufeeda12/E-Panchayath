@@ -1,5 +1,6 @@
 from sqlalchemy import Integer,Column,String,Enum
 from app.db.database import Base
+from sqlalchemy.orm import relationship
 
 
 class User(Base):
@@ -22,3 +23,5 @@ class User(Base):
     ward_number = Column(Integer)
     district = Column(String(100))
     pincode = Column(String(10))
+
+    complaints = relationship("Complaint",back_populates="user")
