@@ -5,7 +5,7 @@ from sqlalchemy.orm import relationship
 
 class User(Base):
 
-    __tablename__ = "users"
+    __tablename__ = "user"
 
     id = Column(Integer, primary_key=True, index=True)
     fullname = Column(String(150), nullable=False)

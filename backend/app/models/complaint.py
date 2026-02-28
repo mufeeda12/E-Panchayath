@@ -6,6 +6,7 @@ from sqlalchemy.orm import relationship
 class Complaint(Base):
     __tablename__ = 'complaint'
     id=Column(Integer,primary_key=True, index=True)
+    title=Column(Text, nullable=False)
     description = Column(Text, nullable=False)
     location = Column(Geometry("point", srid=4326),nullable=False)
     ward_id=Column(Integer,ForeignKey("ward.id"),nullable=False)
