@@ -1,23 +1,28 @@
-import logo from './logo.svg';
-import './App.css';
+import React, { useState } from "react";
+import Header from "./component/Header";
+import Sidebar from "./component/Sidebar";
+import Leaflet from "./component/leaflet"; // your map component
+import "./styles/App.css";
 
 function App() {
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+
+  const toggleSidebar = () => {
+    setSidebarOpen(!sidebarOpen);
+  };
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div className="app">
+      {/* Header */}
+      <Header toggleSidebar={toggleSidebar} />
+
+      {/* Main layout */}
+      <div className="main">
+        {sidebarOpen && <Sidebar />}
+        <div className="map">
+          <Leaflet />
+        </div>
+      </div>
     </div>
   );
 }
