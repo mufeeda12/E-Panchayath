@@ -4,6 +4,7 @@ from fastapi import HTTPException
 from app.models.ward import Ward
 from app.models.complaint import Complaint
 from geoalchemy2.shape import to_shape
+from app.models.enums import ComplaintStatus
 
 def create_complaint_services(db:session,title:str,description:str,longitude:float,latitude:float,user_id:int):
     point=func.ST_SetSRID(func.ST_Point(longitude,latitude),4326)
@@ -33,6 +34,33 @@ def create_complaint_services(db:session,title:str,description:str,longitude:flo
         "status": complaint.status,
         "ward_id": complaint.ward_id
     }
+def get_my_issues(db:session,user_id:int):
+    complaint=db.query(Complaint).filter(Complaint.user_id==user_id).all()
+    complaints=[]
+    for c in complaint:
+        complaints.append({
+            "id":c.id,
+            "title":c.title,
+            "description":c.description,
+            "status":c.status
+        })
+    return complaints
+def get_all_complaints(db:session,
+                       ward_id:int,
+                       status: ComplaintStatus =None
+                       ):
+    query=db.query(Complaint)
+    if ward_id:
+        query=query.filter(Complaint.ward_id==ward_id)
+    if status:
+        query=query.filter(Complaint.status==status)
+    return query.order_by(Complaint.created_at.desc()).all()
+
+
+
+
+
+
 
 
 
