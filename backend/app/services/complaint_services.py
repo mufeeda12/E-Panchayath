@@ -54,7 +54,22 @@ def get_all_complaints(db:session,
         query=query.filter(Complaint.ward_id==ward_id)
     if status:
         query=query.filter(Complaint.status==status)
-    return query.order_by(Complaint.created_at.desc()).all()
+    complaints=query.order_by(Complaint.created_at.desc()).all()
+    result = []
+
+    for c in complaints:
+        result.append({
+            "id": c.id,
+            "title": c.title,
+            "description": c.description,
+            "status": c.status,
+            "ward_id": c.ward_id,
+            "user_id": c.user_id,
+            "image_url": c.image_url,
+            "created_at": c.created_at,
+        })
+
+    return result
 
 
 
