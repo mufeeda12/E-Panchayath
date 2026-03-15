@@ -18,8 +18,9 @@ def get_all_wards(db):
             "ward_number":ward.wardnumber,
         },
         "geometry":json.loads(ward.boundary)
+        })
 
-    })
+
     return {
         "type":"FeatureCollection",
         "features":features,

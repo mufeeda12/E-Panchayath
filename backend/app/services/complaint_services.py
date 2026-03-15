@@ -46,16 +46,35 @@ def get_my_issues(db:Session,user_id:int):
             "status":c.status
         })
     return complaints
-def get_all_complaints(db:Session,
-                       ward_id:int,
-                       status: ComplaintStatus =None
-                       ):
-    query=db.query(Complaint)
+def get_all_complaints(
+    db: Session,
+    ward_id: int | None = None,
+    status: ComplaintStatus | None = None,
+    skip: int = 0,
+    limit: int = 10,
+    search: str | None = None
+):
+
+    query = db.query(Complaint)
+
     if ward_id:
-        query=query.filter(Complaint.ward_id==ward_id)
+        query = query.filter(Complaint.ward_id == ward_id)
+
     if status:
-        query=query.filter(Complaint.status==status)
-    complaints=query.order_by(Complaint.created_at.desc()).all()
+        query = query.filter(Complaint.status == status)
+
+    if search:
+        query = query.filter(
+            Complaint.title.ilike(f"%{search}%")
+        )
+
+    complaints = (
+        query.order_by(Complaint.created_at.desc())
+        .offset(skip)
+        .limit(limit)
+        .all()
+    )
+
     result = []
 
     for c in complaints:
@@ -74,7 +93,8 @@ def get_all_complaints(db:Session,
 def update_complaint_status(db:Session,
                             complaint_id:int,
                             new_status:ComplaintStatus,
-                            admin_comment:str|None=None):
+                            admin_comment:str|None=None
+                            ):
     complaint=db.query(Complaint).filter(Complaint.id==complaint_id).first()
 
     if not complaint:
@@ -102,6 +122,24 @@ def update_complaint_status(db:Session,
     db.commit()
     db.refresh(complaint)
     return complaint
+def get_complaint_by_id(db:Session,complaint_id:int):
+    c=db.query(Complaint).filter(Complaint.id==complaint_id).first()
+    if not c:
+        raise HTTPException(status_code=404,detail="complaint not found")
+    result=[]
+
+    result.append({
+            "id": c.id,
+            "title": c.title,
+            "description": c.description,
+            "status": c.status,
+            "ward_id": c.ward_id,
+            "user_id": c.user_id,
+            "image_url": c.image_url,
+            "created_at": c.created_at,
+        })
+    return result
+
 
 
 
