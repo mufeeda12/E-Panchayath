@@ -1,0 +1,93 @@
+/* HelpSupport.css */
+
+.help-container {
+  max-width: 700px;
+  margin: 2rem auto;
+  padding: 1.5rem;
+  background: #f9fff9;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  font-family: Arial, sans-serif;
+}
+
+.help-header {
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.help-header h2 {
+  margin: 0;
+  color: #2e7d32;
+}
+
+.help-header p {
+  margin: 0.5rem 0 0;
+  color: #555;
+}
+
+.faq-section h3,
+.contact-section h3 {
+  color: #1b5e20;
+  margin-bottom: 0.5rem;
+}
+
+.faq-section ul {
+  list-style: none;
+  padding: 0;
+}
+
+.faq-item {
+  margin-bottom: 0.8rem;
+}
+
+.faq-question {
+  width: 100%;
+  text-align: left;
+  background: #e8f5e9;
+  border: none;
+  padding: 10px;
+  border-radius: 4px;
+  font-size: 0.95rem;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.faq-question:hover {
+  background: #c8e6c9;
+}
+
+.faq-toggle {
+  font-weight: bold;
+  color: #2e7d32;
+}
+
+.faq-answer {
+  margin: 6px 0 0 0;
+  padding: 8px;
+  background: #ffffff;
+  border-left: 3px solid #2e7d32;
+  border-radius: 4px;
+  font-size: 0.9rem;
+}
+
+.contact-section {
+  margin-top: 2rem;
+}
+
+.contact-box {
+  background: #e8f5e9;
+  border: 1px solid #c8e6c9;
+  border-radius: 6px;
+  padding: 1rem;
+}
+
+.contact-box p {
+  margin: 0.8rem 0;
+  font-size: 0.95rem;
+}
+
+.contact-box strong {
+  color: #2e7d32;
+}
