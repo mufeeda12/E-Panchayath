@@ -6,6 +6,7 @@ from app.services.user_services import register_user_services,login_user_service
 from app.db.database import get_db
 from app.core.auth import get_current_user,require_admin
 from app.models.user import User
+from app.services.complaint_services import get_complaint_markers
 from fastapi.security import OAuth2PasswordRequestForm
 router = APIRouter(prefix="/users",tags=["users"])
 
@@ -19,7 +20,6 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(),db:Session=Depends(ge
 @router.get("/admin-test")
 def admin_test(current_user: User = Depends(require_admin)):
     return {"message": "Welcome Admin"}
-
 
 
 
