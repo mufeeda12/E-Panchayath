@@ -1,4 +1,5 @@
 import React from "react";
+import { NavLink } from "react-router-dom";
 import "../styles/Header.css";
 
 const Header = ({ toggleSidebar }) => {
@@ -8,7 +9,9 @@ const Header = ({ toggleSidebar }) => {
         ☰
       </button>
       <h1 className="title">Gram Panchayat Portal</h1>
-      <button className="login-btn">Login</button>
+      <NavLink to="/login">
+        <button className="login-btn">Login</button>
+      </NavLink>
     </header>
   );
 };

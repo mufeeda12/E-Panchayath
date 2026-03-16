@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import "../styles/Sidebar.css";
+import { NavLink } from "react-router-dom";
 
 const Sidebar = () => {
   const [user, setUser] = useState(null);
@@ -26,11 +27,18 @@ const Sidebar = () => {
 
       <nav className="sidebar-nav">
         <ul>
-          <li>Map (Home)</li>
-          <li>My Complaints</li>
-          <li>Profile</li>
-          <li>Help & Support</li>
-          <li>About</li>
+          <li><NavLink to="/">Home</NavLink></li>
+          <li><NavLink to="/src/pages/MyComplaintsPage/MyComplaintsPage.jsx">My Complaints</NavLink></li>
+          <li>
+  <NavLink to={`/citizen/${user?.id || "guest"}`}>
+    Profile
+  </NavLink>
+</li>
+          <li><NavLink to="/support">Help & Support</NavLink></li>
+          <li>
+            <NavLink to="/about">About</NavLink>
+          </li>
+
         </ul>
       </nav>
 

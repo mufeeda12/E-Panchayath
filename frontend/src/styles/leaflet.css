@@ -83,14 +83,59 @@
   border-radius: 50%;
 }
 
-.legend-icon.red {
-  background: #d32f2f;
+
+/* leaflet.css or wherever your map styles are */
+
+/* Legend container */
+.map-legend {
+  position: absolute;
+  bottom: 20px;
+  left: 20px;
+  background: #ffffff;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  padding: 10px 14px;
+  font-size: 13px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
 }
 
-.legend-icon.yellow {
-  background: #fbc02d;
+.map-legend p {
+  margin: 0 0 6px;
+  font-weight: 600;
+  color: #2e7d32;
 }
 
-.legend-icon.green {
-  background: #388e3c;
+/* Legend list */
+.map-legend ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.map-legend li {
+  display: flex;
+  align-items: center;
+  margin: 4px 0;
+  color: #333;
+}
+
+/* Colored squares */
+.legend {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  margin-right: 8px;
+  border-radius: 3px;
+}
+
+.legend.red {
+  background: #e53935;   /* Pending */
+}
+
+.legend.yellow {
+  background: #fbc02d;   /* In Progress */
+}
+
+.legend.green {
+  background: #43a047;   /* Resolved */
 }
