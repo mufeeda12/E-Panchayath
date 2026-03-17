@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from sqlalchemy import func
+from sqlalchemy import func,case
 from fastapi import HTTPException
 from app.models.ward import Ward
 from app.models.complaint import Complaint
@@ -33,7 +33,7 @@ def create_complaint_services(db:Session,title:str,description:str,longitude:flo
         "latitude": point_obj.y,
         "longitude": point_obj.x,
         "status": complaint.status,
-        "ward_id": complaint.ward_id
+        "wardnumber": complaint.ward.wardnumber
     }
 def get_my_issues(db:Session,user_id:int):
     complaint=db.query(Complaint).filter(Complaint.user_id==user_id).all()
@@ -43,7 +43,8 @@ def get_my_issues(db:Session,user_id:int):
             "id":c.id,
             "title":c.title,
             "description":c.description,
-            "status":c.status
+            "status":c.status,
+            "wardnumber":c.ward.wardnumber
         })
     return complaints
 def get_all_complaints(
@@ -83,7 +84,7 @@ def get_all_complaints(
             "title": c.title,
             "description": c.description,
             "status": c.status,
-            "ward_id": c.ward_id,
+            "wardnumber": c.ward.wardnumber,
             "user_id": c.user_id,
             "image_url": c.image_url,
             "created_at": c.created_at,
@@ -133,7 +134,7 @@ def get_complaint_by_id(db:Session,complaint_id:int):
             "title": c.title,
             "description": c.description,
             "status": c.status,
-            "ward_id": c.ward_id,
+            "wardnumber": c.ward.wardnumber,
             "user_id": c.user_id,
             "image_url": c.image_url,
             "created_at": c.created_at,
@@ -141,8 +142,68 @@ def get_complaint_by_id(db:Session,complaint_id:int):
     return result
 
 
+def get_complaint_stats(db: Session):
+    # Total counts across all complaints
+    total = db.query(Complaint).count()
+    pending = db.query(Complaint).filter(Complaint.status == ComplaintStatus.PENDING).count()
+    in_progress = db.query(Complaint).filter(Complaint.status == ComplaintStatus.IN_PROGRESS).count()
+    resolved = db.query(Complaint).filter(Complaint.status == ComplaintStatus.RESOLVED).count()
 
+    # Ward-wise statistics using wardnumber
+    ward_stats = (
+        db.query(
+            Ward.wardnumber,
+            func.count(Complaint.id).label("total"),
+            func.sum(case((Complaint.status == ComplaintStatus.PENDING, 1), else_=0)).label("pending"),
+            func.sum(case((Complaint.status == ComplaintStatus.IN_PROGRESS, 1), else_=0)).label("in_progress"),
+            func.sum(case((Complaint.status == ComplaintStatus.RESOLVED, 1), else_=0)).label("resolved"),
+        )
+        .join(Ward, Complaint.ward_id == Ward.id)
+        .group_by(Ward.wardnumber)
+        .order_by(Ward.wardnumber)
+        .all()
+    )
 
+    # Convert results to list of dictionaries
+    ward_list = [
+        {
+            "wardnumber": w.wardnumber,
+            "total": w.total,
+            "pending": w.pending,
+            "in_progress": w.in_progress,
+            "resolved": w.resolved
+        }
+        for w in ward_stats
+    ]
+
+    return {
+        "total": total,
+        "pending": pending,
+        "in_progress": in_progress,
+        "resolved": resolved,
+        "by_ward": ward_list
+    }
+
+def get_complaint_markers(db:Session,user_id:int | None = None):
+    query = db.query(Complaint)
+
+    if user_id:
+        query = query.filter(Complaint.user_id == user_id)
+
+    complaints = query.all()
+    result = []
+    for c in complaints:
+        point = to_shape(c.location)
+        result.append({
+            "id": c.id,
+            "title": c.title,
+            "latitude": point.y,
+            "longitude": point.x,
+            "status": c.status,
+            "wardnumber": c.ward.wardnumber,
+            "user_id": c.user_id
+        })
+    return result
 
 
 
