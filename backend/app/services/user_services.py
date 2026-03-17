@@ -45,5 +45,23 @@ def login_user_services(user_req,db:session):
     }
 
 
+def get_user_profile(db: Session, user_id: int):
+    user = db.query(User).filter(User.id == user_id).first()
 
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    return {
+        "id": user.id,
+        "fullname": user.fullname,
+        "email": user.email,
+        "role": user.role,
+        "local_body_type": user.local_body_type,
+        "local_body_name": user.local_body_name,
+        "phone_number": user.phone_number,
+        "ward_number": user.ward_number,
+        "district": user.district,
+        "pincode": user.pincode,
+        "total_complaints": len(user.complaints)
+    }
 
