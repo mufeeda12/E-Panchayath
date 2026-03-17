@@ -1,11 +1,11 @@
 from pyexpat.errors import messages
-from sqlalchemy.orm import session
+from sqlalchemy.orm import Session
 from fastapi import HTTPException
 from app.models.user import User
 from app.core.security import hash_password,verify_password
 from app.core.auth import create_access_token
 
-def register_user_services(user,db:session):
+def register_user_services(user,db:Session):
     existing_user=db.query(User).filter(User.email==user.email).first()
     if existing_user:
         raise HTTPException(status_code=400,detail='Email already registered')
@@ -24,7 +24,7 @@ def register_user_services(user,db:session):
     db.commit()
     db.refresh(new_user)
     return new_user
-def login_user_services(user_req,db:session):
+def login_user_services(user_req,db:Session):
     db_user=db.query(User).filter(User.email==user_req.username).first()
     if not db_user:
         raise HTTPException(status_code=400,detail='user is not found')

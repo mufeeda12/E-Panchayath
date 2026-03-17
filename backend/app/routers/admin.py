@@ -1,8 +1,9 @@
-from fastapi import APIRouter,Depends,Query
+from fastapi import APIRouter,Depends,Query,HTTPException
 from sqlalchemy.orm import Session
 from app.db.database import get_db
-from app.core.auth import require_admin
+from app.core.auth import require_admin,get_current_user
 from app.services.complaint_services import get_all_complaints
+from app.services.ward_services import create_ward
 from app.models.enums import ComplaintStatus
 from app.services.complaint_services import update_complaint_status,get_complaint_by_id,get_complaint_stats,get_complaint_markers
 from app.schemas.createComplaint import updateComplaintStatusResponse
@@ -56,4 +57,15 @@ def get_complaint(
         db=db,
         complaint_id=complaint_id
     )
+@router.post("/wards")
+def add_ward(
+    wardnumber: int,
+    boundary: dict,
+    db: Session = Depends(get_db),
+    current_user = Depends(get_current_user)
+):
+    # Only admin can add wards
+    if current_user.role != "ADMIN":
+        raise HTTPException(status_code=403, detail="Not authorized")
 
+    return create_ward(db, wardnumber, boundary)
