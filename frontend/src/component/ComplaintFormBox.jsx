@@ -1,13 +1,17 @@
-// ComplaintFormBox.jsx
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "../styles/ComplaintFormBox.css";
 
-const ComplaintFormBox = ({ onClose }) => {
+const ComplaintFormBox = ({ onClose, location }) => {
   const [formData, setFormData] = useState({
-    location: "9.4606, 76.4394",
+    location: location || "",
     complaintType: "Road Damage",
     description: "",
   });
+
+  // Update location whenever prop changes
+  useEffect(() => {
+    setFormData((prev) => ({ ...prev, location }));
+  }, [location]);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });

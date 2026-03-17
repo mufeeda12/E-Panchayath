@@ -7,14 +7,13 @@ const About = () => {
     <div className="about-container">
       <header className="about-header">
         <h2> About</h2>
-        <p>Digital Seva Portal – Gram Panchayat Khandala</p>
+        <p>Digital Seva Portal – Gram Panchayat</p>
       </header>
 
       <section className="about-intro">
         <p>
-          The Digital Seva Portal empowers citizens of Khandala village to register and track civic complaints directly with the Gram Panchayat. It promotes transparent and accountable local governance, ensuring every citizen’s voice is heard.
+          The Digital Seva Portal empowers citizens of a panchayat to register and track civic complaints directly with the Gram Panchayat. It promotes transparent and accountable local governance, ensuring every citizen’s voice is heard.
         </p>
-        <p className="rating"><i className="fas fa-star"></i> Citizen Rating: 4.8 / 5</p>
       </section>
 
       <section className="section-box">
@@ -29,10 +28,10 @@ const About = () => {
 
       <section className="section-box">
         <h3><i className="fas fa-university"></i> Panchayat Information</h3>
-        <p><i className="fas fa-home"></i> <strong>Panchayat Name:</strong> Gram Panchayat Khandala</p>
-        <p><i className="fas fa-map"></i> <strong>District:</strong> Pune, Maharashtra</p>
-        <p><i className="fas fa-th-large"></i> <strong>Total Wards:</strong> 7 Wards</p>
-        <p><i className="fas fa-users"></i> <strong>Population:</strong> ~4,200 Citizens</p>
+        <p><i className="fas fa-home"></i> <strong>Panchayat Name:</strong> Gram Panchayat Pulincunnoo</p>
+        <p><i className="fas fa-map"></i> <strong>District:</strong> Alappuzha, Kerala</p>
+        <p><i className="fas fa-th-large"></i> <strong>Total Wards:</strong> 13 Wards</p>
+        <p><i className="fas fa-users"></i> <strong>Population:</strong> ~15,200 Citizens</p>
       </section>
     </div>
   );

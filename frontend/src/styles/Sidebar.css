@@ -2,7 +2,7 @@
 .sidebar {
   width: 190px;
   background: #ffffff;
-  border-right: 3px solid #2e7d32;
+  border-right: 3px solid #2d6a2d;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -20,7 +20,7 @@
 
 /* Header */
 .sidebar-header {
-  background: #2e7d32;
+  background: #2d6a2d;
   color: white;
   padding: 10px;
   text-align: center;
@@ -43,7 +43,7 @@
 .user-box {
   margin-top: 7px;
   background: #ffffff;
-  color: #2e7d32;
+  color: #2d6a2d;
   font-size: 12px;
   font-weight: 600;
   padding: 6px 10px;

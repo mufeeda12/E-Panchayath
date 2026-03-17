@@ -28,17 +28,11 @@ const Sidebar = () => {
       <nav className="sidebar-nav">
         <ul>
           <li><NavLink to="/">Home</NavLink></li>
-          <li><NavLink to="/src/pages/MyComplaintsPage/MyComplaintsPage.jsx">My Complaints</NavLink></li>
-          <li>
-  <NavLink to={`/citizen/${user?.id || "guest"}`}>
-    Profile
-  </NavLink>
-</li>
+          <li><NavLink to="/map">Map</NavLink></li>
+          <li><NavLink to="/complaints">My Complaints</NavLink></li>
+          <li><NavLink to={`/citizen/${user?.id || "guest"}`}>Profile</NavLink></li>
           <li><NavLink to="/support">Help & Support</NavLink></li>
-          <li>
-            <NavLink to="/about">About</NavLink>
-          </li>
-
+          <li><NavLink to="/about">About</NavLink></li>
         </ul>
       </nav>
 

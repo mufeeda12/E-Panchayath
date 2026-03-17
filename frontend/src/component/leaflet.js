@@ -13,18 +13,17 @@ import "leaflet/dist/leaflet.css";
 import "leaflet-draw/dist/leaflet.draw.css";
 
 import L from "leaflet";
-import markerIcon from "leaflet/dist/images/marker-icon.png";
-import markerShadow from "leaflet/dist/images/marker-shadow.png";
-
-import "../styles/leaflet.css"; 
+import "../styles/leaflet.css";
 import ComplaintFormBox from "./ComplaintFormBox";
 
-/* Fix default marker icon issue */
-delete L.Icon.Default.prototype._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconUrl: markerIcon,
-  shadowUrl: markerShadow,
+// Custom DivIcon using <i> tag (Font Awesome)
+const customIcon = L.divIcon({
+  html: '<i class="fa fa-map-marker" style="font-size:24px; color:red;"></i>',
+  className: "custom-div-icon",
+  iconSize: [24, 24],
+  iconAnchor: [12, 24],
 });
+
 
 /* Map Click Handler */
 function MapClickHandler({ onClick }) {
@@ -80,7 +79,7 @@ const Leaflet = () => {
         <MapClickHandler onClick={setClickedPos} />
 
         {clickedPos && (
-          <Marker position={clickedPos}>
+          <Marker position={clickedPos} icon={customIcon}>
             <Popup>
               Selected Location <br />
               Lat: {clickedPos.lat.toFixed(5)} <br />
@@ -106,9 +105,12 @@ const Leaflet = () => {
       </button>
 
       {/* Complaint Form Box at bottom-right */}
-      {showForm && (
+      {showForm && clickedPos && (
         <div className="form-overlay-bottom">
-          <ComplaintFormBox onClose={() => setShowForm(false)} />
+          <ComplaintFormBox
+            location={`${clickedPos.lat.toFixed(5)}, ${clickedPos.lng.toFixed(5)}`}
+            onClose={() => setShowForm(false)}
+          />
         </div>
       )}
     </div>

@@ -18,8 +18,6 @@ html, body, #root {
   min-height: 100vh;
 }
 
-
-
 .main {
   display: flex;
   flex: 1;
@@ -32,4 +30,20 @@ html, body, #root {
   position: relative;
   margin: 0;
   padding: 0;
+}
+/* in index.css or App.css */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap');
+
+body {
+  font-family: 'Poppins', sans-serif;
+  letter-spacing: 0.3px;
+}
+.map-container, .modal-box, .map-legend, button, input, select, textarea {
+  font-family: 'Poppins', sans-serif;
+}
+h2 {
+  font-weight: 600;
+}
+p, label {
+  font-weight: 400;
 }

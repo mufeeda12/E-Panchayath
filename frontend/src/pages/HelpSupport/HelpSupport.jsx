@@ -20,21 +20,23 @@ const HelpSupport = () => {
   return (
     <div className="help-container">
       <header className="help-header">
-        <h2>Help & Support</h2>
+        <h2><i className="fas fa-hands-helping"></i> Help & Support</h2>
         <p>We're here to assist you</p>
       </header>
 
       <section className="faq-section">
-        <h3>Frequently Asked Questions</h3>
+        <h3><i className="fas fa-question-circle"></i> Frequently Asked Questions</h3>
         <ul>
           {faqs.map((faq, index) => (
             <li key={index} className="faq-item">
               <button className="faq-question" onClick={() => toggleFAQ(index)}>
                 {faq.question}
-                <span className="faq-toggle">{openIndex === index ? "-" : "+"}</span>
+                <span className="faq-toggle">
+                  {openIndex === index ? <i className="fas fa-minus"></i> : <i className="fas fa-plus"></i>}
+                </span>
               </button>
               {openIndex === index && (
-                <p className="faq-answer">{faq.answer}</p>
+                <p className="faq-answer"><i className="fas fa-angle-right"></i> {faq.answer}</p>
               )}
             </li>
           ))}
@@ -42,11 +44,11 @@ const HelpSupport = () => {
       </section>
 
       <section className="contact-section">
-        <h3>Contact Panchayat Office</h3>
+        <h3><i className="fas fa-phone-alt"></i> Contact Panchayat Office</h3>
         <div className="contact-box">
-          <p><strong>Helpline (Toll Free):</strong><br/> 1800-XXX-XXXX</p>
-          <p><strong>Email:</strong><br/> grampanchayat.khandala@gov.in</p>
-          <p><strong>Office Address:</strong><br/> Gram Panchayat Office, Main Road, Khandala, Pune</p>
+          <p><i className="fas fa-headset"></i> <strong>Helpline (Toll Free)</strong> 1800-XXX-XXXX</p>
+          <p><i className="fas fa-envelope"></i> <strong>Email</strong> e-panchayat@gov.in</p>
+          <p><i className="fas fa-map-marker-alt"></i> <strong>Office Address</strong> Gram Panchayat Office, Main Road, Alappuzha, Kerala</p>
         </div>
       </section>
     </div>

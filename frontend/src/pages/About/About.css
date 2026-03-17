@@ -1,14 +1,15 @@
 /* About.css */
-
 .about-container {
-  max-width: 800px;          /* same width as HelpSupport for consistency */
-  margin: 2rem auto;
-  padding: 1.5rem;
-  background: #f9fff9;
-  border-radius: 8px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-  font-family: Arial, sans-serif;
+  max-width: 50%;          /* keeps content at a readable width */
+  margin: 2rem auto;         /* centers the container horizontally */
+  padding: 1.5rem;           /* space inside the box */
+  background: #f9fff9;       /* light background for contrast */
+  border-radius: 8px;        /* rounded corners */
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1); /* subtle shadow */
+ font-family: 'Poppins', sans-serif;
+  text-align: left;          /* keep content left-aligned for clean look */
 }
+
 
 .about-header {
   text-align: center;
@@ -42,9 +43,8 @@
   margin-top: 0.8rem;
   font-size: 0.95rem;
 }
+
 /* About.css (Citizen Rating styling) */
-
-
 /* Section boxes styled like HelpSupport contact-box */
 .section-box {
   margin-top: 1.5rem;
