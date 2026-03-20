@@ -29,3 +29,5 @@ class Complaint(Base):
 
     user= relationship("User",back_populates="complaints")
     ward =relationship("Ward",back_populates="complaints")
+    category = Column(String, nullable=True)
+    priority = Column(String, nullable=True)

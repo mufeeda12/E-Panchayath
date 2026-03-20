@@ -6,7 +6,7 @@ from app.models.complaint import Complaint
 from geoalchemy2.shape import to_shape
 from app.models.enums import ComplaintStatus
 from datetime import datetime
-
+from app.ml.utils.predict import predict_category, predict_priority
 def create_complaint_services(db:Session,title:str,description:str,longitude:float,latitude:float,user_id:int):
     point=func.ST_SetSRID(func.ST_Point(longitude,latitude),4326)
     ward=db.query(Ward).filter(
@@ -14,13 +14,18 @@ def create_complaint_services(db:Session,title:str,description:str,longitude:flo
     ).first()
     if not ward:
         raise HTTPException(status_code=400,detail="location is outside of boundaries")
+    text=title+" "+description
+    category=predict_category(text)
+    priority=predict_priority(text)
 
     complaint= Complaint(
     title=title,
     description=description,
     location=point,
     ward_id=ward.id,
-    user_id=user_id
+    user_id=user_id,
+    category=category,
+    priority=priority,
     )
     db.add(complaint)
     db.commit()
@@ -33,7 +38,9 @@ def create_complaint_services(db:Session,title:str,description:str,longitude:flo
         "latitude": point_obj.y,
         "longitude": point_obj.x,
         "status": complaint.status,
-        "wardnumber": complaint.ward.wardnumber
+        "wardnumber": complaint.ward.wardnumber,
+        "category":complaint.category,
+        "priority":complaint.priority,
     }
 def get_my_issues(db:Session,user_id:int):
     complaint=db.query(Complaint).filter(Complaint.user_id==user_id).all()
@@ -204,7 +211,6 @@ def get_complaint_markers(db:Session,user_id:int | None = None):
             "user_id": c.user_id
         })
     return result
-
 
 
 
