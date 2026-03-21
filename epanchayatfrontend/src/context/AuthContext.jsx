@@ -38,9 +38,13 @@ export const AuthProvider = ({ children }) => {
       });
       // FastAPI OAuth2 typically returns access_token
       const token = response.data.access_token || response.data.token;
+      if (!token) {
+        return { success: false, message: 'No token received from server' };
+      }
       setToken(token);
       return { success: true };
     } catch (error) {
+      console.error('Login error:', error);
       return { success: false, message: error.response?.data?.detail || 'Login failed' };
     }
   };

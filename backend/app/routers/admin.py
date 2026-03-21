@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from app.db.database import get_db
 from app.core.auth import require_admin,get_current_user
 from app.services.complaint_services import get_all_complaints
-from app.services.ward_services import create_ward, delete_ward, get_ward_by_id, delete_ward_by_number, get_ward_by_number
+from app.services.ward_services import create_ward,delete_ward_by_number,get_ward_by_number
 from app.models.enums import ComplaintStatus
 from app.services.complaint_services import update_complaint_status,get_complaint_by_id,get_complaint_stats,get_complaint_markers
 from app.schemas.createComplaint import updateComplaintStatusResponse
@@ -69,59 +69,6 @@ def add_ward(
         raise HTTPException(status_code=403, detail="Not authorized")
 
     return create_ward(db, wardnumber, boundary)
-
-@router.delete("/wards/{ward_id}")
-def delete_ward_endpoint(
-    ward_id: int,
-    db: Session = Depends(get_db),
-    admin=Depends(require_admin)
-):
-    """
-    Delete a ward by ID.
-    Only admin can delete wards.
-    Cannot delete a ward if it has associated complaints.
-    
-    Args:
-        ward_id: ID of the ward to delete
-        db: Database session
-        admin: Current admin user (from require_admin dependency)
-        
-    Returns:
-        Dictionary with success message and deleted ward info
-        
-    Status Codes:
-        200: Ward deleted successfully
-        404: Ward not found
-        400: Ward has associated complaints
-        403: User is not admin
-    """
-    return delete_ward(db, ward_id)
-
-
-@router.get("/wards/{ward_id}")
-def get_ward_endpoint(
-    ward_id: int,
-    db: Session = Depends(get_db),
-    admin=Depends(require_admin)
-):
-    """
-    Get a specific ward by ID with its GeoJSON boundary.
-    Only admin can view individual ward details.
-    
-    Args:
-        ward_id: ID of the ward to retrieve
-        db: Database session
-        admin: Current admin user (from require_admin dependency)
-        
-    Returns:
-        Ward feature with GeoJSON geometry
-        
-    Status Codes:
-        200: Ward found and returned
-        404: Ward not found
-        403: User is not admin
-    """
-    return get_ward_by_id(db, ward_id)
 
 @router.delete("/wards/number/{wardnumber}")
 def delete_ward_by_number_endpoint(
