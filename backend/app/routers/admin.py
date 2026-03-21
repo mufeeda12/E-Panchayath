@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from app.db.database import get_db
 from app.core.auth import require_admin,get_current_user
 from app.services.complaint_services import get_all_complaints
-from app.services.ward_services import create_ward,delete_ward_by_number,get_ward_by_number
+from app.services.ward_services import create_ward,delete_ward_by_number,get_ward_by_number,get_all_wards
 from app.models.enums import ComplaintStatus
 from app.services.complaint_services import update_complaint_status,get_complaint_by_id,get_complaint_stats,get_complaint_markers
 from app.schemas.createComplaint import updateComplaintStatusResponse
@@ -69,6 +69,17 @@ def add_ward(
         raise HTTPException(status_code=403, detail="Not authorized")
 
     return create_ward(db, wardnumber, boundary)
+
+@router.get("/wards")
+def get_all_wards_endpoint(
+    db: Session = Depends(get_db),
+    admin=Depends(require_admin)
+):
+    """
+    Get all wards with their boundaries in GeoJSON format.
+    Only admin can view all wards.
+    """
+    return get_all_wards(db)
 
 @router.delete("/wards/number/{wardnumber}")
 def delete_ward_by_number_endpoint(

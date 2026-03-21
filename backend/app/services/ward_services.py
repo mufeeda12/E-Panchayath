@@ -39,7 +39,7 @@ def get_all_wards(db):
         "type":"Feature",
         "properties":{
             "id":ward.id,
-            "ward_number":ward.wardnumber,
+            "wardnumber":ward.wardnumber,
         },
         "geometry":json.loads(ward.boundary)
         })
@@ -117,7 +117,7 @@ def get_ward_by_number(db: Session, wardnumber: int):
         "type": "Feature",
         "properties": {
             "id": ward.id,
-            "ward_number": ward.wardnumber,
+            "wardnumber": ward.wardnumber,
         },
         "geometry": json.loads(ward.boundary)
     }

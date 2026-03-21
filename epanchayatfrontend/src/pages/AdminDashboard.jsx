@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BarChart3, Clock, CheckCircle, Activity, MapPin } from 'lucide-react';
+import { BarChart3, Clock, CheckCircle, Activity, MapPin, Trash2 } from 'lucide-react';
 import { MapContainer, TileLayer, Polygon, Marker, useMapEvents, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
@@ -22,10 +22,12 @@ L.Marker.prototype.options.icon = DefaultIcon;
 const AdminDashboard = () => {
   const [stats, setStats] = useState({ total: 0, pending: 0, inProgress: 0, resolved: 0 });
   const [complaints, setComplaints] = useState([]);
+  const [wards, setWards] = useState([]);
   const [loading, setLoading] = useState(true);
   const [newWard, setNewWard] = useState({ wardnumber: '', boundary: '' });
   const [wardSubmitStatus, setWardSubmitStatus] = useState('');
   const [drawingPoints, setDrawingPoints] = useState([]);
+  const [deletingWard, setDeletingWard] = useState(null);
 
   // Sub-component to track clicks
   const MapClickDrawer = () => {
@@ -82,6 +84,11 @@ const AdminDashboard = () => {
         
         const complaintsRes = await api.get('/admin/complaints');
         setComplaints(complaintsRes.data);
+
+        const wardsRes = await api.get('/admin/wards');
+        if (wardsRes.data.features) {
+          setWards(wardsRes.data.features);
+        }
       } catch (error) {
         console.error("Error fetching admin data", error);
       } finally {
@@ -97,6 +104,25 @@ const AdminDashboard = () => {
       setComplaints(complaints.map(c => c.id === id ? { ...c, status: newStatus } : c));
     } catch (error) {
       alert("Failed to update status");
+    }
+  };
+
+  const deleteWard = async (wardnumber) => {
+    if (!window.confirm(`Are you sure you want to delete Ward ${wardnumber}? This action cannot be undone.`)) {
+      return;
+    }
+    
+    setDeletingWard(wardnumber);
+    try {
+      await api.delete(`/admin/wards/number/${wardnumber}`);
+      setWards(wards.filter(w => w.properties.wardnumber !== wardnumber));
+      alert(`Ward ${wardnumber} deleted successfully!`);
+    } catch (error) {
+      const errorMsg = error.response?.data?.detail || 'Failed to delete ward';
+      alert(`Error: ${errorMsg}`);
+      console.error(error);
+    } finally {
+      setDeletingWard(null);
     }
   };
 
@@ -203,6 +229,54 @@ const AdminDashboard = () => {
                     </button>
                   </div>
                 </form>
+              </div>
+            </div>
+
+            {/* Complaints Management Table */}
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mb-8">
+              <div className="px-6 py-4 border-b border-gray-200 bg-gray-50 flex justify-between items-center">
+                <h2 className="text-lg font-bold text-gray-800">Manage Wards</h2>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-white">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Ward Number</th>
+                      <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Type</th>
+                      <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {wards.length > 0 ? (
+                      wards.map((ward) => (
+                        <tr key={ward.properties.wardnumber} className="hover:bg-gray-50 transition-colors">
+                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                            Ward {ward.properties.wardnumber}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            Polygon Boundary
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                            <button
+                              onClick={() => deleteWard(ward.properties.wardnumber)}
+                              disabled={deletingWard === ward.properties.wardnumber}
+                              className="inline-flex items-center gap-2 px-3 py-2 bg-red-50 text-red-600 rounded-md hover:bg-red-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium text-sm"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                              {deletingWard === ward.properties.wardnumber ? 'Deleting...' : 'Delete'}
+                            </button>
+                          </td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan="3" className="px-6 py-8 text-center text-gray-500">
+                          No wards registered yet
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
               </div>
             </div>
 
