@@ -1,8 +1,9 @@
 import joblib
-import os
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+# Category
+category_model = joblib.load("app/ml/models/categoryprediction/category.pkl")
+category_vectorizer = joblib.load("app/ml/models/categoryprediction/cvectorizer.pkl")
 
-category_model = joblib.load("app/ml/models/categoryprediction.pkl")
-priority_model = joblib.load("app/ml/models/priorityprediction.pkl")
-vectogit branchrizer = joblib.load("app/ml/models/vectorizer.pkl")
+# Priority
+priority_model = joblib.load("app/ml/models/priorityprediction/priority.pkl")
+priority_vectorizer = joblib.load("app/ml/models/priorityprediction/pvectorizer.pkl")
