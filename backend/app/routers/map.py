@@ -19,12 +19,8 @@ def home_complaint_map(
     db: Session = Depends(get_db),
     current_user=Depends(get_current_user)
 ):
-
-    if current_user.role == "ADMIN":
-        markers = get_complaint_markers(db)  # all complaints
-    else:
-        markers = get_complaint_markers(db, user_id=current_user.id)  # user's complaints only
-
+    # Return all complaints so citizens can see community issues
+    markers = get_complaint_markers(db)
     return markers
 
 

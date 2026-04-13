@@ -3,9 +3,9 @@ from sqlalchemy.orm import Session
 from app.db.database import get_db
 from app.core.auth import require_admin,get_current_user
 from app.services.complaint_services import get_all_complaints
-from app.services.ward_services import create_ward,delete_ward_by_number,get_ward_by_number,get_all_wards
+from app.services.ward_services import create_ward,delete_ward_by_number,get_ward_by_number,get_all_wards,update_ward_boundary
 from app.models.enums import ComplaintStatus
-from app.services.complaint_services import update_complaint_status,get_complaint_by_id,get_complaint_stats,get_complaint_markers
+from app.services.complaint_services import update_complaint_status,get_complaint_by_id,get_complaint_stats,get_complaint_markers,update_complaint_priority
 from app.schemas.createComplaint import updateComplaintStatusResponse
 router = APIRouter(prefix="/admin",tags=["Admin"])
 
@@ -28,6 +28,15 @@ def fetch_all_complaints(
         skip=skip,
         limit=limit
     )
+@router.patch("/complaints/{complaint_id}/priority")
+def change_priority(
+        complaint_id: int,
+        priority: str,
+        db:Session=Depends(get_db),
+        admin=Depends(require_admin)
+):
+    return update_complaint_priority(db, complaint_id, priority)
+
 @router.patch("/complaints/{complaint_id}/status",response_model=updateComplaintStatusResponse)
 def change_status(
         complaint_id: int,
@@ -57,6 +66,15 @@ def get_complaint(
         db=db,
         complaint_id=complaint_id
     )
+@router.put("/wards/number/{wardnumber}")
+def edit_ward_boundary_endpoint(
+    wardnumber: int,
+    boundary: dict,
+    db: Session = Depends(get_db),
+    admin=Depends(require_admin)
+):
+    return update_ward_boundary(db, wardnumber, boundary)
+
 @router.post("/wards")
 def add_ward(
     wardnumber: int,

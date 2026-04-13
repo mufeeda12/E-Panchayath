@@ -21,17 +21,33 @@ def create_ward(db: Session, wardnumber: int, boundary: dict):
     db.add(ward)
     db.commit()
     db.refresh(ward)
+    return {
+        "id": ward.id,
+        "wardnumber": ward.wardnumber
+    }
+
+def update_ward_boundary(db: Session, wardnumber: int, boundary: dict):
+    ward = db.query(Ward).filter(Ward.wardnumber == wardnumber).first()
+    if not ward:
+        raise HTTPException(status_code=404, detail="Ward not found")
+
+    geom = func.ST_SetSRID(func.ST_GeomFromGeoJSON(str(boundary)), 4326)
+    ward.boundary = geom
+
+    db.commit()
+    db.refresh(ward)
 
     return {
         "id": ward.id,
         "wardnumber": ward.wardnumber
     }
+
 def get_all_wards(db):
     wards=db.query(
         Ward.id,
         Ward.wardnumber,
         func.ST_AsGeoJSON(Ward.boundary).label("boundary")
-    ).all()
+    ).order_by(Ward.wardnumber).all()
     features=[]
 
     for ward in wards:

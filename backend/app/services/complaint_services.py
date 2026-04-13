@@ -95,6 +95,8 @@ def get_all_complaints(
             "user_id": c.user_id,
             "image_url": c.image_url,
             "created_at": c.created_at,
+            "priority": c.priority,
+            "category": c.category,
         })
 
     return result
@@ -119,6 +121,12 @@ def update_complaint_status(db:Session,
 
     if new_status==ComplaintStatus.RESOLVED:
         complaint.resolved_at=datetime.utcnow()
+        try:
+            from app.utils.notifications import send_resolution_email
+            send_resolution_email(complaint.user.fullname, complaint.user.email, complaint.title)
+        except Exception as e:
+            print(f"Failed to send notification: {e}")
+            
     if new_status==ComplaintStatus.IN_PROGRESS:
         complaint.started_at=datetime.utcnow()
 
@@ -127,6 +135,16 @@ def update_complaint_status(db:Session,
         complaint.admin_comment=admin_comment
 
 
+    db.commit()
+    db.refresh(complaint)
+    return complaint
+
+def update_complaint_priority(db: Session, complaint_id: int, new_priority: str):
+    complaint = db.query(Complaint).filter(Complaint.id == complaint_id).first()
+    if not complaint:
+        raise HTTPException(status_code=404, detail="complaint not found")
+        
+    complaint.priority = new_priority
     db.commit()
     db.refresh(complaint)
     return complaint
@@ -145,6 +163,8 @@ def get_complaint_by_id(db:Session,complaint_id:int):
             "user_id": c.user_id,
             "image_url": c.image_url,
             "created_at": c.created_at,
+            "priority": c.priority,
+            "category": c.category,
         })
     return result
 
