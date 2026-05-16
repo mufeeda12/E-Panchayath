@@ -18,7 +18,7 @@ api.interceptors.request.use(
   }
 );
 
-// Add a response interceptor for debugging
+// Add a response interceptor for debugging and error handling
 api.interceptors.response.use(
   (response) => {
     console.log('API Response:', response.data);
@@ -26,6 +26,19 @@ api.interceptors.response.use(
   },
   (error) => {
     console.error('API Error:', error.response?.data || error.message);
+    
+    // Handle 401 Unauthorized errors - redirect to login
+    if (error.response?.status === 401) {
+      console.warn('Unauthorized access - redirecting to login');
+      localStorage.removeItem('token');
+      window.location.href = '/login';
+    }
+    
+    // Handle 403 Forbidden errors
+    if (error.response?.status === 403) {
+      console.warn('Forbidden - insufficient permissions');
+    }
+    
     return Promise.reject(error);
   }
 );

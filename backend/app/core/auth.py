@@ -56,7 +56,8 @@ def get_current_user(
     print("TOKEN RECEIVED:", token)
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Could not validate credentials",
+        detail="Could not validate credentials. Please log in again.",
+        headers={"WWW-Authenticate": "Bearer"},
     )
 
     try:
@@ -64,7 +65,8 @@ def get_current_user(
         email: str = payload.get("sub")
         if email is None:
             raise credentials_exception
-    except JWTError:
+    except JWTError as e:
+        print(f"JWT Error: {e}")
         raise credentials_exception
     print("PAYLOAD:", payload)
 

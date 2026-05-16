@@ -4,6 +4,7 @@ import api from '../services/api';
 const MyComplaints = () => {
   const [complaints, setComplaints] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     const fetchComplaints = async () => {
@@ -12,6 +13,8 @@ const MyComplaints = () => {
         setComplaints(res.data);
         setLoading(false);
       } catch (error) {
+        console.error('Error fetching complaints:', error);
+        setError('Failed to load complaints. Please try again.');
         setLoading(false);
       }
     };
@@ -33,7 +36,17 @@ const MyComplaints = () => {
         <h1 className="text-3xl font-bold text-gray-900 mb-6">My Complaints</h1>
         
         {loading ? (
-          <div className="text-center py-10">Loading complaints...</div>
+          <div className="text-center py-10">
+            <div className="inline-block">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            </div>
+            <p className="mt-3 text-gray-500">Loading complaints...</p>
+          </div>
+        ) : error ? (
+          <div className="bg-white p-8 rounded-xl shadow-sm border border-red-200 text-center">
+            <p className="text-red-600 font-semibold mb-2">Unable to Load Complaints</p>
+            <p className="text-gray-500 text-sm">{error}</p>
+          </div>
         ) : complaints.length === 0 ? (
           <div className="bg-white p-8 rounded-xl shadow-sm border border-gray-100 text-center">
             <p className="text-gray-500">You haven't submitted any complaints yet.</p>

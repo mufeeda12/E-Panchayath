@@ -56,7 +56,14 @@ const MapDashboard = () => {
         setSelectedLocation(null);
       }, 2000);
     } catch (error) {
-      setSubmitStatus('error');
+      console.error('Complaint submission error:', error);
+      // Check if it's an auth error
+      if (error.response?.status === 401) {
+        setSubmitStatus(null);
+        // The API interceptor will handle redirect to login
+      } else {
+        setSubmitStatus('error');
+      }
     }
   };
 
@@ -197,7 +204,12 @@ const MapDashboard = () => {
                     Location: {selectedLocation.lat.toFixed(5)}, {selectedLocation.lng.toFixed(5)}
                   </div>
                   
-                  {submitStatus === 'error' && <p className="text-red-500 text-sm">Failed to submit. Try again.</p>}
+                   {submitStatus === 'error' && (
+                     <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
+                       <p className="font-semibold mb-1">Failed to Submit</p>
+                       <p>Please try again. If the problem persists, please log in again.</p>
+                     </div>
+                   )}
                   
                   <button 
                     type="submit" 
