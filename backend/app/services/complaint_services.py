@@ -231,6 +231,17 @@ def get_complaint_markers(db:Session,user_id:int | None = None):
             "user_id": c.user_id
         })
     return result
+def get_latest_complaint(db,user_id,category=None):
+    query=db.query(Complaint).filter(Complaint.user_id==user_id)
+    if category:
+        query =query.filter(Complaint.category == category)
+        return query.order_by(Complaint.created_at.desc()).first()
+def get_pending_complaints_count(db,user_id):
+    return db.query(Complaint).filter(Complaint.user_id==user_id,Complaint.status!="resolved").count()
+
+
+
+
 
 
 
