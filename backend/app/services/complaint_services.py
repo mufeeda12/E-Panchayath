@@ -15,13 +15,8 @@ def create_complaint_services(db:Session,title:str,description:str,longitude:flo
     if not ward:
         raise HTTPException(status_code=400,detail="location is outside of boundaries")
     text=title+" "+description
-<<<<<<< HEAD
-    category=int(predict_category(text))
-    priority=int(predict_priority(text))
-=======
     category = int(predict_category(text))
     priority = int(predict_priority(text))
->>>>>>> 501bb8ad1325d3f97f6f8edb784e37e9a58388f5
 
     complaint= Complaint(
     title=title,
@@ -215,6 +210,57 @@ def get_complaint_stats(db: Session):
         "resolved": resolved,
         "by_ward": ward_list
     }
+
+def get_ward_analytics(db: Session):
+    analytics = (
+        db.query(
+            Ward.wardnumber.label("ward"),
+            func.count(Complaint.id).label("total"),
+            func.sum(case((Complaint.status == ComplaintStatus.PENDING, 1), else_=0)).label("pending"),
+            func.sum(case((Complaint.status == ComplaintStatus.RESOLVED, 1), else_=0)).label("resolved"),
+            func.avg(func.extract('epoch', Complaint.resolved_at - Complaint.created_at)).label("avg_resolution_seconds")
+        )
+        .join(Ward, Complaint.ward_id == Ward.id)
+        .group_by(Ward.wardnumber)
+        .order_by(Ward.wardnumber)
+        .all()
+    )
+
+    result = []
+    for ward in analytics:
+        avg_seconds = ward.avg_resolution_seconds
+        avg_time = None
+        avg_days = None
+        if avg_seconds is not None:
+            avg_days = avg_seconds / 86400
+            if avg_days < 1:
+                avg_time = f"{avg_days * 24:.1f} Hours"
+            else:
+                avg_time = f"{avg_days:.1f} Days"
+
+        resolved_ratio = (ward.resolved / ward.total * 100) if ward.total else 0
+        if ward.total == 0:
+            performance = "No Data"
+        elif resolved_ratio >= 90 and (avg_days is None or avg_days <= 3):
+            performance = "Excellent"
+        elif resolved_ratio >= 75 and (avg_days is None or avg_days <= 7):
+            performance = "Good"
+        elif resolved_ratio >= 50:
+            performance = "Needs Improvement"
+        else:
+            performance = "Poor"
+
+        result.append({
+            "ward": ward.ward,
+            "total": ward.total,
+            "pending": ward.pending,
+            "resolved": ward.resolved,
+            "resolved_percent": round(resolved_ratio, 1),
+            "avg_time": avg_time or "N/A",
+            "performance": performance
+        })
+
+    return result
 
 def get_complaint_markers(db:Session,user_id:int | None = None):
     query = db.query(Complaint)

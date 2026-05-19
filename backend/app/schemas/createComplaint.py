@@ -8,6 +8,9 @@ class createComplaint(BaseModel):
     description:str
     longitude:float
     latitude:float
+class UpdateComplaintStatusRequest(BaseModel):
+    status: ComplaintStatus
+    adminComment: Optional[str] = None
 class updateComplaintStatusResponse(BaseModel):
     id:int
     status:ComplaintStatus

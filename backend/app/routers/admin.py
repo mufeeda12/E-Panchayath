@@ -2,11 +2,11 @@ from fastapi import APIRouter,Depends,Query,HTTPException
 from sqlalchemy.orm import Session
 from app.db.database import get_db
 from app.core.auth import require_admin,get_current_user
-from app.services.complaint_services import get_all_complaints
+from app.services.complaint_services import get_all_complaints, get_ward_analytics
 from app.services.ward_services import create_ward,delete_ward_by_number,get_ward_by_number,get_all_wards,update_ward_boundary
 from app.models.enums import ComplaintStatus
 from app.services.complaint_services import update_complaint_status,get_complaint_by_id,get_complaint_stats,get_complaint_markers,update_complaint_priority
-from app.schemas.createComplaint import updateComplaintStatusResponse
+from app.schemas.createComplaint import updateComplaintStatusResponse,UpdateComplaintStatusRequest
 router = APIRouter(prefix="/admin",tags=["Admin"])
 
 @router.get("/complaints")
@@ -37,19 +37,22 @@ def change_priority(
 ):
     return update_complaint_priority(db, complaint_id, priority)
 
-@router.patch("/complaints/{complaint_id}/status",response_model=updateComplaintStatusResponse)
+@router.patch(
+    "/complaints/{complaint_id}/status",
+    response_model=updateComplaintStatusResponse
+)
 def change_status(
-        complaint_id: int,
-        status: ComplaintStatus,
-        db:Session=Depends(get_db),
-        admin=Depends(require_admin),
-        admin_comment:str|None=None
+    complaint_id: int,
+    data: UpdateComplaintStatusRequest,
+    db: Session = Depends(get_db),
+    admin = Depends(require_admin),
 ):
-    return  update_complaint_status(
+
+    return update_complaint_status(
         db,
         complaint_id,
-        status,
-        admin_comment
+        data.status,
+        data.adminComment
     )
 @router.get("/complaints/stats")
 def complaint_stats(db: Session = Depends(get_db), admin=Depends(require_admin)):
@@ -155,3 +158,14 @@ def get_ward_by_number_endpoint(
         403: User is not admin
     """
     return get_ward_by_number(db, wardnumber)
+
+
+@router.get("/ward-analytics")
+def get_ward_analytics_endpoint(
+    db: Session = Depends(get_db),
+    admin=Depends(require_admin)
+):
+    """
+    Get ward-wise complaint analytics for the admin dashboard.
+    """
+    return get_ward_analytics(db)
