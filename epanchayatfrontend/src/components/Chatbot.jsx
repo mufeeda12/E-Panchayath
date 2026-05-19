@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { MessageSquare, X, Send } from 'lucide-react';
+import axios from 'axios';
 
 const Chatbot = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -26,17 +27,40 @@ const Chatbot = () => {
     setMessages(prev => [...prev, { id: Date.now(), text: userMessage, isBot: false }]);
 
     // Simulate bot thinking and API call
-    setTimeout(() => {
-      let botResponse = "I have logged your query. Our team will look into it.";
-      if (userMessage.toLowerCase().includes('status')) {
-        botResponse = "To check your complaint status, please visit the 'My Complaints' page from the navigation bar.";
-      } else if (userMessage.toLowerCase().includes('report')) {
-        botResponse = "You can report issues by clicking on the Map Dashboard, selecting the location, and filling out the form.";
+    try{
+      const token=localStorage.getItem("token");
+      const response= await axios.post("http://127.0.0.1:8000/chatbot/chat",{
+        message:userMessage
+      },{
+        headers:{
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json"
+        }
       }
 
-      setMessages(prev => [...prev, { id: Date.now(), text: botResponse, isBot: true }]);
-    }, 1000);
-  };
+    );
+    setMessages(prev => [
+      ...prev,
+      {
+        id: Date.now(),
+        text: response.data.response,
+        isBot: true
+      }
+    ]);
+
+    }catch(error){
+          console.error(error);
+
+    setMessages(prev => [
+      ...prev,
+      {
+        id: Date.now(),
+        text: "Unable to connect to chatbot server.",
+        isBot: true
+      }
+    ]);
+  }
+    };
 
   return (
     <>

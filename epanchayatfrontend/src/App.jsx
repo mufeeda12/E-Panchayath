@@ -1,10 +1,11 @@
-import React, { Suspense, lazy } from 'react';
+import React, { Suspense, lazy, useContext } from 'react';
 import { BrowserRouter as Router, Routes, Route, Outlet } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import LoadingScreen from './components/LoadingScreen';
 import Chatbot from './components/Chatbot';
 import ProtectedRoute from './components/ProtectedRoute';
+import { AuthContext } from './context/AuthContext';
 
 // Lazy loading pages for better performance
 const LandingPage = lazy(() => import('./pages/LandingPage'));
@@ -17,6 +18,9 @@ const MyProfile = lazy(() => import('./pages/MyProfile'));
 
 // We also need a layout component that includes the Navbar and Footer
 const Layout = () => {
+  const { user } = useContext(AuthContext);
+  const isAdmin = user && (user.role === 'ADMIN' || user.role === 'admin' || user.is_admin || user.is_superuser);
+
   return (
     <div className="min-h-screen flex flex-col bg-slate-50">
       <Navbar />
@@ -25,7 +29,7 @@ const Layout = () => {
           <Outlet />
         </Suspense>
       </main>
-      <Chatbot />
+      {!isAdmin && <Chatbot />}
       <Footer />
     </div>
   );
@@ -49,7 +53,7 @@ function App() {
           
           {/* Protected Routes */}
           <Route path="map" element={<ProtectedRoute><MapDashboard /></ProtectedRoute>} />
-          <Route path="my-complaints" element={<ProtectedRoute><MyComplaints /></ProtectedRoute>} />
+          <Route path="my-complaints" element={<ProtectedRoute regularUserOnly={true}><MyComplaints /></ProtectedRoute>} />
           <Route path="profile" element={<ProtectedRoute><MyProfile /></ProtectedRoute>} />
           <Route path="admin" element={<ProtectedRoute adminOnly={true}><AdminDashboard /></ProtectedRoute>} />
         </Route>
