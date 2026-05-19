@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { BarChart3, Clock, CheckCircle, Activity, MapPin, Trash2, Edit2 } from 'lucide-react';
 import { MapContainer, TileLayer, Polygon, Marker, useMapEvents, Popup, GeoJSON } from 'react-leaflet';
-import { PieChart, Pie, Cell, Tooltip as RechartsTooltip, Legend, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
+import { PieChart, Pie, Cell, Tooltip as RechartsTooltip, Legend, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, LineChart, Line } from 'recharts';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import api from '../services/api';
@@ -24,6 +24,7 @@ const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8', '#82CA9D'
 
 const AdminDashboard = () => {
   const [stats, setStats] = useState({ total: 0, pending: 0, inProgress: 0, resolved: 0, by_ward: [] });
+  const [wardAnalytics, setWardAnalytics] = useState([]);
   const [complaints, setComplaints] = useState([]);
   const [wards, setWards] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -111,6 +112,9 @@ const AdminDashboard = () => {
         const statsRes = await api.get('/admin/complaints/stats');
         setStats(statsRes.data);
         
+        const analyticsRes = await api.get('/admin/ward-analytics');
+        setWardAnalytics(analyticsRes.data);
+
         const complaintsRes = await api.get('/admin/complaints');
         setComplaints(complaintsRes.data);
 
@@ -173,6 +177,14 @@ const AdminDashboard = () => {
       ? stats.by_ward.reduce((max, w) => (w.resolved > max.resolved ? w : max), stats.by_ward[0])
       : null;
 
+  const bestWardAnalytics = wardAnalytics.length > 0
+    ? wardAnalytics.reduce((best, w) => (w.resolved_percent > best.resolved_percent ? w : best), wardAnalytics[0])
+    : null;
+
+  const totalWardComplaints = wardAnalytics.reduce((sum, ward) => sum + ward.total, 0);
+  const totalWardResolved = wardAnalytics.reduce((sum, ward) => sum + ward.resolved, 0);
+  const totalWardPending = wardAnalytics.reduce((sum, ward) => sum + ward.pending, 0);
+
   const StatCard = ({ title, value, icon, colorClass }) => (
     <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex items-center justify-between">
       <div>
@@ -202,6 +214,93 @@ const AdminDashboard = () => {
               <StatCard title="Resolved" value={stats.resolved} icon={<CheckCircle className="text-green-600 h-6 w-6"/>} colorClass="text-green-600" />
             </div>
 
+            {wardAnalytics.length > 0 && (
+              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
+                <h2 className="text-lg font-bold text-gray-800 mb-4">Ward Performance Overview</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+                  <StatCard title="Total Complaints" value={totalWardComplaints} icon={<BarChart3 className="text-slate-700 h-6 w-6"/>} colorClass="text-slate-700" />
+                  <StatCard title="Resolved" value={totalWardResolved} icon={<CheckCircle className="text-green-600 h-6 w-6"/>} colorClass="text-green-600" />
+                  <StatCard title="Pending" value={totalWardPending} icon={<Clock className="text-red-600 h-6 w-6"/>} colorClass="text-red-600" />
+                  <StatCard title="Best Ward" value={bestWardAnalytics ? `Ward ${bestWardAnalytics.ward}` : '—'} icon={<Activity className="text-blue-600 h-6 w-6"/>} colorClass="text-blue-600" />
+                </div>
+
+                <div className="overflow-x-auto">
+                  <table className="min-w-full divide-y divide-gray-200">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Ward</th>
+                        <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Resolved %</th>
+                        <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Pending</th>
+                        <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Avg Time</th>
+                        <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Performance</th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                      {wardAnalytics.map((ward) => (
+                        <tr key={ward.ward} className="hover:bg-gray-50 transition-colors">
+                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Ward {ward.ward}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{ward.resolved_percent}%</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{ward.pending}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{ward.avg_time}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-700">{ward.performance}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+
+            {wardAnalytics.length > 0 && (
+              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
+                <h2 className="text-lg font-bold text-gray-800 mb-4">Ward Analytics Charts</h2>
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                  <div className="h-80 bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+                    <h3 className="text-sm font-semibold text-gray-700 mb-2">Complaints per Ward</h3>
+                    <ResponsiveContainer width="100%" height="85%">
+                      <PieChart>
+                        <Pie data={wardAnalytics} dataKey="total" nameKey="ward" cx="50%" cy="50%" outerRadius={90} label={entry => `Ward ${entry.ward}`}> 
+                          {wardAnalytics.map((entry, index) => (
+                            <Cell key={`pie-${index}`} fill={COLORS[index % COLORS.length]} />
+                          ))}
+                        </Pie>
+                        <RechartsTooltip formatter={(value, name) => [`${value} Complaints`, `Ward ${name}`]} />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </div>
+
+                  <div className="h-80 bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+                    <h3 className="text-sm font-semibold text-gray-700 mb-2">Complaint Status Breakdown</h3>
+                    <ResponsiveContainer width="100%" height="85%">
+                      <BarChart data={wardAnalytics} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="ward" tickFormatter={(value) => `W${value}`} />
+                        <YAxis />
+                        <RechartsTooltip />
+                        <Legend />
+                        <Bar dataKey="pending" fill="#EF4444" name="Pending" />
+                        <Bar dataKey="resolved" fill="#10B981" name="Resolved" />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+
+                  <div className="h-80 bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+                    <h3 className="text-sm font-semibold text-gray-700 mb-2">Resolution % Trend</h3>
+                    <ResponsiveContainer width="100%" height="85%">
+                      <LineChart data={wardAnalytics} margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="ward" tickFormatter={(value) => `W${value}`} />
+                        <YAxis domain={[0, 100]} />
+                        <RechartsTooltip />
+                        <Legend />
+                        <Line type="monotone" dataKey="resolved_percent" stroke="#2563EB" strokeWidth={3} dot={{ r: 4 }} />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Ward Resolution Charts */}
             {stats.by_ward && stats.by_ward.length > 0 && (
               <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
@@ -211,7 +310,7 @@ const AdminDashboard = () => {
                     🏆 Best Performing Ward: Ward {bestWard.wardnumber} with {bestWard.resolved} resolved issues!
                   </div>
                 )}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 h-[350px]">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 h-80">
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
                       <Pie
@@ -292,7 +391,7 @@ const AdminDashboard = () => {
                   <button 
                     type="button"
                     onClick={() => { setDrawingPoints([]); setNewWard(prev => ({ ...prev, boundary: '' })); setEditMode(false); }}
-                    className="absolute top-4 right-4 z-[400] bg-white text-red-600 px-3 py-1 rounded-md shadow-md font-bold text-sm hover:bg-red-50"
+                    className="absolute top-4 right-4 z-50 bg-white text-red-600 px-3 py-1 rounded-md shadow-md font-bold text-sm hover:bg-red-50"
                   >
                     Clear Map
                   </button>
