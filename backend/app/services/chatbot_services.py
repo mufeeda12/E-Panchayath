@@ -1,5 +1,7 @@
 # app/services/chatbot_service.py
 
+from app.models.complaint import Complaint
+
 from app.nlp.tfidf_services import (
     predict_intent
 )
@@ -77,6 +79,49 @@ def chatbot_response(
     elif intent == "office_info":
 
         return office_info_response()
+    elif intent == "resolved_complaints":
+
+        resolved_count = db.query(
+            Complaint
+        ).filter(
+            Complaint.user_id == current_user.id,
+            Complaint.status == "RESOLVED"
+        ).count()
+
+        return {
+            "response":
+                f"You have {resolved_count} resolved complaints."
+        }
+    elif intent == "resolution_time":
+
+        return {
+            "response":
+                "Most complaints are usually resolved within 3 to 7 working days depending on priority."
+        }
+    elif intent == "ward_contact":
+
+        complaint = db.query(Complaint).filter(
+            Complaint.user_id == current_user.id
+        ).order_by(
+            Complaint.created_at.desc()
+        ).first()
+
+        if complaint:
+            ward = complaint.ward
+
+            return {
+                "response": (
+                    f"Your complaint belongs to "
+                    f"Ward {ward.wardnumber}.\n"
+                    f"Ward Member: {ward.member_name}\n"
+                    f"Contact: {ward.member_phone}"
+                )
+            }
+
+        return {
+            "response":
+                "No complaints found."
+        }
 
 
     # Fallback

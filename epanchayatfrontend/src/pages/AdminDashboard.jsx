@@ -27,7 +27,7 @@ const AdminDashboard = () => {
   const [complaints, setComplaints] = useState([]);
   const [wards, setWards] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [newWard, setNewWard] = useState({ wardnumber: '', boundary: '' });
+  const [newWard, setNewWard] = useState({ wardnumber: '', boundary: '', member_name: '', member_phone: '' });
   const [wardSubmitStatus, setWardSubmitStatus] = useState('');
   const [drawingPoints, setDrawingPoints] = useState([]);
   const [deletingWard, setDeletingWard] = useState(null);
@@ -67,13 +67,17 @@ const AdminDashboard = () => {
     setWardSubmitStatus('loading');
     try {
       const boundaryObj = JSON.parse(newWard.boundary);
+      const encodedMemberName = encodeURIComponent(newWard.member_name);
+      const encodedMemberPhone = encodeURIComponent(newWard.member_phone);
+      const queryString = `?member_name=${encodedMemberName}&member_phone=${encodedMemberPhone}`;
+
       if (editMode) {
-        await api.put(`/admin/wards/number/${newWard.wardnumber}`, boundaryObj);
+        await api.put(`/admin/wards/number/${newWard.wardnumber}${queryString}`, boundaryObj);
       } else {
-        await api.post(`/admin/wards?wardnumber=${newWard.wardnumber}`, boundaryObj);
+        await api.post(`/admin/wards?wardnumber=${newWard.wardnumber}${queryString}`, boundaryObj);
       }
       setWardSubmitStatus('success');
-      setNewWard({ wardnumber: '', boundary: '' });
+      setNewWard({ wardnumber: '', boundary: '', member_name: '', member_phone: '' });
       setDrawingPoints([]);
       setEditMode(false);
       
@@ -91,7 +95,12 @@ const AdminDashboard = () => {
   const handleEditWard = (ward) => {
     const coords = ward.geometry.coordinates[0];
     const latlngs = coords.slice(0, -1).map(c => [c[1], c[0]]);
-    setNewWard({ wardnumber: ward.properties.wardnumber, boundary: '' });
+    setNewWard({
+      wardnumber: ward.properties.wardnumber,
+      boundary: '',
+      member_name: ward.properties.member_name || '',
+      member_phone: ward.properties.member_phone || ''
+    });
     setDrawingPoints(latlngs);
     setEditMode(true);
   };
@@ -304,6 +313,28 @@ const AdminDashboard = () => {
                         placeholder="e.g. 1"
                       />
                     </div>
+                    <div className="mb-4">
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Ward Member Name</label>
+                      <input
+                        type="text"
+                        required
+                        value={newWard.member_name}
+                        onChange={e => setNewWard({...newWard, member_name: e.target.value})}
+                        className="w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring focus:ring-primary focus:ring-opacity-50 px-3 py-2 border"
+                        placeholder="e.g. John Doe"
+                      />
+                    </div>
+                    <div className="mb-4">
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Ward Member Phone</label>
+                      <input
+                        type="tel"
+                        required
+                        value={newWard.member_phone}
+                        onChange={e => setNewWard({...newWard, member_phone: e.target.value})}
+                        className="w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring focus:ring-primary focus:ring-opacity-50 px-3 py-2 border"
+                        placeholder="e.g. +911234567890"
+                      />
+                    </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Generated GeoJSON</label>
                       <textarea 
@@ -341,6 +372,8 @@ const AdminDashboard = () => {
                   <thead className="bg-white">
                     <tr>
                       <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Ward Number</th>
+                      <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Member Name</th>
+                      <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Member Phone</th>
                       <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Type</th>
                       <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Actions</th>
                     </tr>
@@ -349,6 +382,8 @@ const AdminDashboard = () => {
                     {wards.map((ward) => (
                       <tr key={ward.properties.wardnumber} className="hover:bg-gray-50 transition-colors">
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Ward {ward.properties.wardnumber}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{ward.properties.member_name || '—'}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{ward.properties.member_phone || '—'}</td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Polygon Boundary</td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium flex gap-4">
                           <button

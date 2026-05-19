@@ -4,7 +4,8 @@ import json
 from sqlalchemy.orm import Session
 from fastapi import HTTPException
 
-def create_ward(db: Session, wardnumber: int, boundary: dict):
+def create_ward(db: Session, wardnumber: int, boundary: dict,member_name: str,
+    member_phone: str):
 
     existing = db.query(Ward).filter(Ward.wardnumber == wardnumber).first()
     if existing:
@@ -15,7 +16,9 @@ def create_ward(db: Session, wardnumber: int, boundary: dict):
 
     ward = Ward(
         wardnumber=wardnumber,
-        boundary=geom
+        boundary=geom,
+        member_name=member_name,
+        member_phone=member_phone
     )
 
     db.add(ward)
@@ -23,29 +26,39 @@ def create_ward(db: Session, wardnumber: int, boundary: dict):
     db.refresh(ward)
     return {
         "id": ward.id,
-        "wardnumber": ward.wardnumber
+        "wardnumber": ward.wardnumber,
+        "member_name": ward.member_name,
+        "member_phone": ward.member_phone
     }
 
-def update_ward_boundary(db: Session, wardnumber: int, boundary: dict):
+def update_ward_boundary(db: Session, wardnumber: int, boundary: dict, member_name: str | None = None, member_phone: str | None = None):
     ward = db.query(Ward).filter(Ward.wardnumber == wardnumber).first()
     if not ward:
         raise HTTPException(status_code=404, detail="Ward not found")
 
     geom = func.ST_SetSRID(func.ST_GeomFromGeoJSON(str(boundary)), 4326)
     ward.boundary = geom
+    if member_name is not None:
+        ward.member_name = member_name
+    if member_phone is not None:
+        ward.member_phone = member_phone
 
     db.commit()
     db.refresh(ward)
 
     return {
         "id": ward.id,
-        "wardnumber": ward.wardnumber
+        "wardnumber": ward.wardnumber,
+        "member_name": ward.member_name,
+        "member_phone": ward.member_phone
     }
 
 def get_all_wards(db):
     wards=db.query(
         Ward.id,
         Ward.wardnumber,
+        Ward.member_name,
+        Ward.member_phone,
         func.ST_AsGeoJSON(Ward.boundary).label("boundary")
     ).order_by(Ward.wardnumber).all()
     features=[]
@@ -56,6 +69,8 @@ def get_all_wards(db):
         "properties":{
             "id":ward.id,
             "wardnumber":ward.wardnumber,
+            "member_name": ward.member_name,
+            "member_phone": ward.member_phone,
         },
         "geometry":json.loads(ward.boundary)
         })
@@ -123,6 +138,8 @@ def get_ward_by_number(db: Session, wardnumber: int):
     ward = db.query(
         Ward.id,
         Ward.wardnumber,
+        Ward.member_name,
+        Ward.member_phone,
         func.ST_AsGeoJSON(Ward.boundary).label("boundary")
     ).filter(Ward.wardnumber == wardnumber).first()
     
@@ -134,6 +151,8 @@ def get_ward_by_number(db: Session, wardnumber: int):
         "properties": {
             "id": ward.id,
             "wardnumber": ward.wardnumber,
+            "member_name": ward.member_name,
+            "member_phone": ward.member_phone,
         },
         "geometry": json.loads(ward.boundary)
     }

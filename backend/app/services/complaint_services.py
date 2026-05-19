@@ -15,8 +15,8 @@ def create_complaint_services(db:Session,title:str,description:str,longitude:flo
     if not ward:
         raise HTTPException(status_code=400,detail="location is outside of boundaries")
     text=title+" "+description
-    category=predict_category(text)
-    priority=predict_priority(text)
+    category=int(predict_category(text))
+    priority=int(predict_priority(text))
 
     complaint= Complaint(
     title=title,
@@ -237,7 +237,7 @@ def get_latest_complaint(db,user_id,category=None):
         query =query.filter(Complaint.category == category)
         return query.order_by(Complaint.created_at.desc()).first()
 def get_pending_complaints_count(db,user_id):
-    return db.query(Complaint).filter(Complaint.user_id==user_id,Complaint.status!="resolved").count()
+    return db.query(Complaint).filter(Complaint.user_id==user_id,Complaint.status!="RESOLVED").count()
 
 
 

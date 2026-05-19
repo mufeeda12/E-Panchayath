@@ -70,15 +70,19 @@ def get_complaint(
 def edit_ward_boundary_endpoint(
     wardnumber: int,
     boundary: dict,
+    member_name: str | None = Query(None),
+    member_phone: str | None = Query(None),
     db: Session = Depends(get_db),
     admin=Depends(require_admin)
 ):
-    return update_ward_boundary(db, wardnumber, boundary)
+    return update_ward_boundary(db, wardnumber, boundary, member_name, member_phone)
 
 @router.post("/wards")
 def add_ward(
     wardnumber: int,
     boundary: dict,
+    member_name: str = Query(...),
+    member_phone: str = Query(...),
     db: Session = Depends(get_db),
     current_user = Depends(get_current_user)
 ):

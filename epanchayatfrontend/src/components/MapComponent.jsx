@@ -123,10 +123,21 @@ const MapComponent = ({ onLocationSelect, externalCenter, selectedLocation }) =>
           style={{ color: '#2E7D32', weight: 2, fillOpacity: 0.1 }}
           onEachFeature={(feature, layer) => {
             if (feature.properties) {
-              const wardLabel = feature.properties.wardNo || feature.properties.ward_number || feature.properties.ward_no || feature.properties.name;
-              if (wardLabel) {
-                layer.bindTooltip(`Ward ${wardLabel}`, { permanent: true, direction: "center", className: "bg-transparent border-none text-primary font-bold text-shadow text-lg drop-shadow-md" });
-              }
+              const wardNumber = feature.properties.wardnumber ?? feature.properties.wardNo ?? feature.properties.ward_number ?? feature.properties.ward_no ?? feature.properties.name;
+              const memberName = feature.properties.member_name || feature.properties.memberName || '';
+              const memberPhone = feature.properties.member_phone || feature.properties.memberPhone || '';
+              const tooltipText = `Ward ${wardNumber}${memberName ? ` · ${memberName}` : ''}`;
+
+              layer.bindTooltip(tooltipText, { sticky: true });
+
+              const popupContent = `
+                <div style="font-size:14px; line-height:1.4;">
+                  <strong>Ward ${wardNumber}</strong>
+                  ${memberName ? `<div>Member: ${memberName}</div>` : ''}
+                  ${memberPhone ? `<div>Phone: ${memberPhone}</div>` : ''}
+                </div>
+              `;
+              layer.bindPopup(popupContent);
             }
           }}
         />
