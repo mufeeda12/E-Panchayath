@@ -6,7 +6,20 @@ from app.models.complaint import Complaint
 from geoalchemy2.shape import to_shape
 from app.models.enums import ComplaintStatus
 from datetime import datetime
-from app.ml.utils.predict import predict_category, predict_priority
+from app.ml.utils.predict import predict_category, predict_priority, PRIORITY_LABELS
+
+def normalize_priority(priority_value):
+    if priority_value is None:
+        return None
+    if isinstance(priority_value, int):
+        return PRIORITY_LABELS.get(priority_value, "Low")
+    try:
+        priority_int = int(priority_value)
+    except (TypeError, ValueError):
+        return str(priority_value)
+    return PRIORITY_LABELS.get(priority_int, str(priority_value))
+
+
 def create_complaint_services(db:Session,title:str,description:str,longitude:float,latitude:float,user_id:int):
     point=func.ST_SetSRID(func.ST_Point(longitude,latitude),4326)
     ward=db.query(Ward).filter(
@@ -14,18 +27,18 @@ def create_complaint_services(db:Session,title:str,description:str,longitude:flo
     ).first()
     if not ward:
         raise HTTPException(status_code=400,detail="location is outside of boundaries")
-    text=title+" "+description
+    text = title + " " + description
     category = int(predict_category(text))
-    priority = int(predict_priority(text))
+    priority = predict_priority(text)
 
-    complaint= Complaint(
-    title=title,
-    description=description,
-    location=point,
-    ward_id=ward.id,
-    user_id=user_id,
-    category=category,
-    priority=priority,
+    complaint = Complaint(
+        title=title,
+        description=description,
+        location=point,
+        ward_id=ward.id,
+        user_id=user_id,
+        category=category,
+        priority=priority,
     )
     db.add(complaint)
     db.commit()
@@ -95,7 +108,7 @@ def get_all_complaints(
             "user_id": c.user_id,
             "image_url": c.image_url,
             "created_at": c.created_at,
-            "priority": c.priority,
+            "priority": normalize_priority(c.priority),
             "category": c.category,
         })
 
@@ -163,7 +176,7 @@ def get_complaint_by_id(db:Session,complaint_id:int):
             "user_id": c.user_id,
             "image_url": c.image_url,
             "created_at": c.created_at,
-            "priority": c.priority,
+            "priority": normalize_priority(c.priority),
             "category": c.category,
         })
     return result
