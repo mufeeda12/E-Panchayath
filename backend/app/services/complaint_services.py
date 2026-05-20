@@ -6,22 +6,7 @@ from app.models.complaint import Complaint
 from geoalchemy2.shape import to_shape
 from app.models.enums import ComplaintStatus
 from datetime import datetime
-from app.ml.utils.predict import predict_category, predict_priority
-def normalize_priority(priority):
-    if priority is None:
-        return None
-    priority_str = str(priority)
-    priority_map = {
-        '0': 'High',
-        '1': 'Low',
-        '2': 'Medium',
-        'High': 'High',
-        'Medium': 'Medium',
-        'Low': 'Low'
-    }
-    return priority_map.get(priority_str, priority_str)
-
-
+from app.ml.utils.predict import predict_category, predict_priority, get_category_label
 def create_complaint_services(db:Session,title:str,description:str,longitude:float,latitude:float,user_id:int):
     point=func.ST_SetSRID(func.ST_Point(longitude,latitude),4326)
     ward=db.query(Ward).filter(
@@ -30,8 +15,8 @@ def create_complaint_services(db:Session,title:str,description:str,longitude:flo
     if not ward:
         raise HTTPException(status_code=400,detail="location is outside of boundaries")
     text=title+" "+description
-    category = int(predict_category(text))
-    priority = normalize_priority(predict_priority(text))
+    category = predict_category(text)
+    priority = int(predict_priority(text))
 
     complaint= Complaint(
     title=title,
@@ -54,7 +39,7 @@ def create_complaint_services(db:Session,title:str,description:str,longitude:flo
         "longitude": point_obj.x,
         "status": complaint.status,
         "wardnumber": complaint.ward.wardnumber,
-        "category":complaint.category,
+        "category": get_category_label(complaint.category),
         "priority":complaint.priority,
     }
 def get_my_issues(db:Session,user_id:int):
@@ -66,9 +51,7 @@ def get_my_issues(db:Session,user_id:int):
             "title":c.title,
             "description":c.description,
             "status":c.status,
-            "wardnumber":c.ward.wardnumber,
-            "priority": normalize_priority(c.priority),
-            "created_at": c.created_at
+            "wardnumber":c.ward.wardnumber
         })
     return complaints
 def get_all_complaints(
@@ -112,8 +95,8 @@ def get_all_complaints(
             "user_id": c.user_id,
             "image_url": c.image_url,
             "created_at": c.created_at,
-            "priority": normalize_priority(c.priority),
-            "category": c.category,
+            "priority": c.priority,
+            "category": get_category_label(c.category),
         })
 
     return result
@@ -180,8 +163,8 @@ def get_complaint_by_id(db:Session,complaint_id:int):
             "user_id": c.user_id,
             "image_url": c.image_url,
             "created_at": c.created_at,
-            "priority": normalize_priority(c.priority),
-            "category": c.category,
+            "priority": c.priority,
+            "category": get_category_label(c.category),
         })
     return result
 
@@ -296,8 +279,7 @@ def get_complaint_markers(db:Session,user_id:int | None = None):
             "longitude": point.x,
             "status": c.status,
             "wardnumber": c.ward.wardnumber,
-            "user_id": c.user_id,
-            "priority": normalize_priority(c.priority)
+            "user_id": c.user_id
         })
     return result
 def get_latest_complaint(db,user_id,category=None):
