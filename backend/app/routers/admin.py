@@ -93,7 +93,7 @@ def add_ward(
     if current_user.role != "ADMIN":
         raise HTTPException(status_code=403, detail="Not authorized")
 
-    return create_ward(db, wardnumber, boundary)
+    return create_ward(db, wardnumber, boundary,member_name,member_phone)
 
 @router.get("/wards")
 def get_all_wards_endpoint(

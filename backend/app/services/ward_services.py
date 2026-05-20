@@ -12,7 +12,7 @@ def create_ward(db: Session, wardnumber: int, boundary: dict,member_name: str,
         raise HTTPException(status_code=400, detail="Ward already exists")
 
     # Convert GeoJSON to geometry
-    geom = func.ST_SetSRID(func.ST_GeomFromGeoJSON(str(boundary)), 4326)
+    geom = func.ST_SetSRID(func.ST_GeomFromGeoJSON(json.dumps(boundary)), 4326)
 
     ward = Ward(
         wardnumber=wardnumber,
@@ -36,7 +36,7 @@ def update_ward_boundary(db: Session, wardnumber: int, boundary: dict, member_na
     if not ward:
         raise HTTPException(status_code=404, detail="Ward not found")
 
-    geom = func.ST_SetSRID(func.ST_GeomFromGeoJSON(str(boundary)), 4326)
+    geom = func.ST_SetSRID(func.ST_GeomFromGeoJSON(json.dumps(boundary)), 4326)
     ward.boundary = geom
     if member_name is not None:
         ward.member_name = member_name

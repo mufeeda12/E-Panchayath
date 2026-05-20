@@ -19,8 +19,8 @@ def home_complaint_map(
     db: Session = Depends(get_db),
     current_user=Depends(get_current_user)
 ):
-    # Return all complaints so citizens can see community issues
-    markers = get_complaint_markers(db)
+    # Return only the logged-in user's complaint markers for privacy
+    markers = get_complaint_markers(db, current_user.id)
     return markers
 
 
