@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { BarChart3, Clock, CheckCircle, Activity, MapPin, Trash2, Edit2 } from 'lucide-react';
-import { MapContainer, TileLayer, Polygon, Marker, useMapEvents, Popup, GeoJSON } from 'react-leaflet';
+import { MapContainer, TileLayer, Polygon, Marker, useMapEvents, useMap, Popup, GeoJSON } from 'react-leaflet';
 import { PieChart, Pie, Cell, Tooltip as RechartsTooltip, Legend, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, LineChart, Line } from 'recharts';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
@@ -45,6 +45,62 @@ const AdminDashboard = () => {
     return null;
   };
 
+  // Map control (leaflet control) for clear and undo actions — avoids stacking/visibility issues
+  const MapControls = ({ onClear, onUndo, visible }) => {
+    const map = useMap();
+    useEffect(() => {
+      if (!visible) return;
+      const control = L.control({ position: 'topright' });
+      control.onAdd = function () {
+        const container = L.DomUtil.create('div', 'leaflet-bar');
+        container.style.background = 'white';
+        container.style.padding = '6px';
+        container.style.borderRadius = '6px';
+        container.style.boxShadow = '0 1px 6px rgba(0,0,0,0.15)';
+        container.style.zIndex = '1000';
+        container.style.display = 'flex';
+        container.style.gap = '6px';
+        container.style.alignItems = 'center';
+
+          // Prevent clicks on the control from propagating to the map
+          L.DomEvent.disableClickPropagation(container);
+          L.DomEvent.disableScrollPropagation(container);
+
+        const makeButton = (text, color) => {
+          const btn = L.DomUtil.create('a', '', container);
+          btn.innerHTML = text;
+          btn.href = '#';
+          btn.style.cursor = 'pointer';
+          btn.style.padding = '6px 12px';
+          btn.style.minWidth = '64px';
+          btn.style.fontSize = '13px';
+          btn.style.color = color;
+          btn.style.textDecoration = 'none';
+          btn.style.background = 'white';
+          btn.style.borderRadius = '4px';
+          btn.style.border = '1px solid rgba(0,0,0,0.06)';
+          btn.style.whiteSpace = 'nowrap';
+          btn.style.display = 'inline-flex';
+          btn.style.alignItems = 'center';
+          return btn;
+        };
+
+        const clearBtn = makeButton('Clear', '#dc2626');
+        const undoBtn = makeButton('Undo', '#2563EB');
+
+        L.DomEvent.on(clearBtn, 'click', (e) => { L.DomEvent.stopPropagation(e); L.DomEvent.preventDefault(e); onClear(); });
+        L.DomEvent.on(undoBtn, 'click', (e) => { L.DomEvent.stopPropagation(e); L.DomEvent.preventDefault(e); onUndo(); });
+
+        return container;
+      };
+
+      control.addTo(map);
+      return () => control.remove();
+    }, [map, onClear, onUndo, visible]);
+
+    return null;
+  };
+
   useEffect(() => {
     if (drawingPoints.length > 2) {
       // GeoJSON requires longitude, latitude ordering
@@ -65,29 +121,55 @@ const AdminDashboard = () => {
 
   const handleAddWard = async (e) => {
     e.preventDefault();
+    // basic validation before attempting save
+    if (!newWard.wardnumber) {
+      alert('Please enter a ward number before saving.');
+      return;
+    }
+    if (!newWard.boundary || newWard.boundary.trim() === '') {
+      alert('Please draw at least 3 points on the map to generate a ward boundary before saving.');
+      return;
+    }
+
     setWardSubmitStatus('loading');
     try {
-      const boundaryObj = JSON.parse(newWard.boundary);
-      const encodedMemberName = encodeURIComponent(newWard.member_name);
-      const encodedMemberPhone = encodeURIComponent(newWard.member_phone);
-      const queryString = `?member_name=${encodedMemberName}&member_phone=${encodedMemberPhone}`;
-
-      if (editMode) {
-        await api.put(`/admin/wards/number/${newWard.wardnumber}${queryString}`, boundaryObj);
-      } else {
-        await api.post(`/admin/wards?wardnumber=${newWard.wardnumber}${queryString}`, boundaryObj);
+      let boundaryObj;
+      try {
+        boundaryObj = JSON.parse(newWard.boundary);
+      } catch (parseErr) {
+        console.error('Invalid GeoJSON boundary:', parseErr, newWard.boundary);
+        alert('Generated GeoJSON is invalid. Please redraw the ward boundary.');
+        setWardSubmitStatus('');
+        return;
       }
+
+      const encodedMemberName = encodeURIComponent(newWard.member_name);
+const encodedMemberPhone = encodeURIComponent(newWard.member_phone);
+
+if (editMode) {
+  await api.put(
+    `/admin/wards/number/${newWard.wardnumber}?member_name=${encodedMemberName}&member_phone=${encodedMemberPhone}`,
+    boundaryObj
+  );
+} else {
+  await api.post(
+    `/admin/wards?wardnumber=${newWard.wardnumber}&member_name=${encodedMemberName}&member_phone=${encodedMemberPhone}`,
+    boundaryObj
+  );
+}
+
       setWardSubmitStatus('success');
       setNewWard({ wardnumber: '', boundary: '', member_name: '', member_phone: '' });
       setDrawingPoints([]);
       setEditMode(false);
-      
+
       const wardsRes = await api.get('/admin/wards');
       if (wardsRes.data.features) setWards(wardsRes.data.features);
-      
+
       setTimeout(() => setWardSubmitStatus(''), 3000);
     } catch (err) {
-      console.error(err);
+      console.error('Failed to save ward:', err);
+      alert('Failed to save ward. See console for details.');
       setWardSubmitStatus('error');
       setTimeout(() => setWardSubmitStatus(''), 3000);
     }
@@ -361,6 +443,7 @@ const AdminDashboard = () => {
                       attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
                     />
                     <MapClickDrawer />
+                    <MapControls visible={drawingPoints.length > 0} onClear={() => { setDrawingPoints([]); setNewWard(prev => ({ ...prev, boundary: '' })); setEditMode(false); }} onUndo={() => { setDrawingPoints(prev => prev.slice(0, -1)); }} />
                     {drawingPoints.map((pt, idx) => (
                       <Marker key={idx} position={pt} icon={DefaultIcon}>
                         <Popup>Vertex {idx + 1}</Popup>
@@ -388,13 +471,6 @@ const AdminDashboard = () => {
                       />
                     ))}
                   </MapContainer>
-                  <button 
-                    type="button"
-                    onClick={() => { setDrawingPoints([]); setNewWard(prev => ({ ...prev, boundary: '' })); setEditMode(false); }}
-                    className="absolute top-4 right-4 z-50 bg-white text-red-600 px-3 py-1 rounded-md shadow-md font-bold text-sm hover:bg-red-50"
-                  >
-                    Clear Map
-                  </button>
                 </div>
 
                 {/* Submission Form */}

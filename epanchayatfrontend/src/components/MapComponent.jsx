@@ -120,7 +120,7 @@ const MapComponent = ({ onLocationSelect, externalCenter, selectedLocation }) =>
         <GeoJSON 
           key={`wards-${JSON.stringify(wards).slice(0, 50)}`} 
           data={wards} 
-          style={{ color: '#2E7D32', weight: 2, fillOpacity: 0.1 }}
+          style={{ color: '#2E7D32', weight: 2, fillOpacity: 0.1, interactive: false }}
           onEachFeature={(feature, layer) => {
             if (feature.properties) {
               const wardNumber = feature.properties.wardnumber ?? feature.properties.wardNo ?? feature.properties.ward_number ?? feature.properties.ward_no ?? feature.properties.name;
@@ -128,7 +128,7 @@ const MapComponent = ({ onLocationSelect, externalCenter, selectedLocation }) =>
               const memberPhone = feature.properties.member_phone || feature.properties.memberPhone || '';
               const tooltipText = `Ward ${wardNumber}${memberName ? ` · ${memberName}` : ''}`;
 
-              layer.bindTooltip(tooltipText, { sticky: true });
+              layer.bindTooltip(tooltipText, { sticky: true, interactive: false });
 
               const popupContent = `
                 <div style="font-size:14px; line-height:1.4;">
@@ -154,7 +154,7 @@ const MapComponent = ({ onLocationSelect, externalCenter, selectedLocation }) =>
               <h3 className="font-bold text-sm mb-1">{complaint.title}</h3>
               <p className="text-xs text-gray-600 mb-2">{complaint.description}</p>
               <div className="flex justify-between items-center text-xs mt-2 pt-2 border-t border-gray-200">
-                <span className="font-semibold px-2 py-1 rounded bg-gray-100">Ward: {complaint.ward}</span>
+                <span className="font-semibold px-2 py-1 rounded bg-gray-100">Ward: {complaint.wardnumber}</span>
                 <span className={`font-semibold px-2 py-1 rounded ${
                   complaint.status === 'Pending' ? 'bg-red-100 text-red-700' :
                   complaint.status === 'In Progress' ? 'bg-orange-100 text-orange-700' :

@@ -67,9 +67,9 @@ const MyComplaints = () => {
                   {complaints.map((c) => (
                     <tr key={c.id} className="hover:bg-gray-50 transition-colors">
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{c.title}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{c.ward}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{c.wardnumber}</td>
                       <td className="px-6 py-4 whitespace-nowrap">{getStatusBadge(c.status)}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{new Date(c.created_at).toLocaleDateString()}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{c.created_at ? new Date(c.created_at).toLocaleDateString() : '—'}</td>
                     </tr>
                   ))}
                 </tbody>
