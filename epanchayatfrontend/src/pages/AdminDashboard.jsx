@@ -216,8 +216,12 @@ if (editMode) {
   const updateStatus = async (id, newStatus) => {
     try {
       await api.patch(`/admin/complaints/${id}/status`, { status: newStatus });
-      setComplaints(complaints.map(c => c.id === id ? { ...c, status: newStatus } : c));
-    } catch (error) {
+      if (newStatus === 'Resolved') {
+        setComplaints(complaints.filter(c => c.id !== id));
+      } else {
+        setComplaints(complaints.map(c => c.id === id ? { ...c, status: newStatus } : c));
+      }
+    } catch {
       alert("Failed to update status");
     }
   };
@@ -226,7 +230,7 @@ if (editMode) {
     try {
       await api.patch(`/admin/complaints/${id}/priority?priority=${newPriority}`);
       setComplaints(complaints.map(c => c.id === id ? { ...c, priority: newPriority } : c));
-    } catch (error) {
+    } catch {
       alert("Failed to update priority");
     }
   };
@@ -250,10 +254,12 @@ if (editMode) {
     }
   };
   
+  const visibleComplaints = useMemo(() => complaints.filter(c => c.status !== 'Resolved'), [complaints]);
+
   const filteredComplaints = useMemo(() => {
-    if (!filterWard) return complaints;
-    return complaints.filter(c => c.wardnumber?.toString() === filterWard.toString());
-  }, [complaints, filterWard]);
+    if (!filterWard) return visibleComplaints;
+    return visibleComplaints.filter(c => c.wardnumber?.toString() === filterWard.toString());
+  }, [visibleComplaints, filterWard]);
 
   const bestWard = stats.by_ward && stats.by_ward.length > 0 
       ? stats.by_ward.reduce((max, w) => (w.resolved > max.resolved ? w : max), stats.by_ward[0])
@@ -608,19 +614,21 @@ if (editMode) {
                       <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">ID</th>
                       <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Title</th>
                       <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Ward</th>
+                      <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Category</th>
                       <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Priority</th>
                       <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
                     {filteredComplaints.length === 0 ? (
-                      <tr><td colSpan={5} className="text-center py-6 text-gray-500">No complaints match.</td></tr>
+                      <tr><td colSpan={6} className="text-center py-6 text-gray-500">No complaints match.</td></tr>
                     ) : (
                       filteredComplaints.map((c) => (
                         <tr key={c.id} className="hover:bg-gray-50 transition-colors">
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">#{c.id}</td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{c.title}</td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{c.wardnumber}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{c.category || 'Uncategorized'}</td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                             <select 
                               value={c.priority || 'Low'}
